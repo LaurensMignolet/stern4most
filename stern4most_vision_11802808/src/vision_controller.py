@@ -7,12 +7,14 @@ from sensor_msgs.msg import Image
 from threading import Lock
 
 
+
 from std_msgs.msg import String
 
 import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
 import numpy as np
+from stern4most_messages.msg import Lines #niet vergeten te sourcen!!!
 
 GUI_UPDATE_PERIOD = 0.10  # Seconds
 
@@ -32,8 +34,8 @@ class VisionDisplay:
         self.bound_up  = np.array([0, 0, 0])
 
         #eigenschappen publisher
-        #self.pub = rospy.Publisher('/lines', Image, queue_size=10 )
-        self.image_pub = rospy.Publisher("lines", Image, queue_size=10)
+        self.pub = rospy.Publisher('/vision/lines', Lines, queue_size=10 )
+        #self.image_pub = rospy.Publisher("lines", Image, queue_size=10)
 
         self.line_image = None
         #####
@@ -43,14 +45,7 @@ class VisionDisplay:
         self.connected = False
 
         self.redrawTimer = rospy.Timer(rospy.Duration(GUI_UPDATE_PERIOD), self.callback_redraw)
-        self.publishTimer = rospy.Timer(rospy.Duration(GUI_UPDATE_PERIOD), self.publish_image)
-
-
-    def publish_image(self, event):
-        try:
-            self.image_pub.publish( self.line_image, "bgr8")
-        except CvBridgeError as e:
-            print(e)
+    
 
     def is_running(self):
         return self.running
@@ -70,6 +65,15 @@ class VisionDisplay:
             for line in lines:
                 for x1, y1, x2, y2 in line:
                     cv2.line(blank_image, (x1, y1), (x2, y2), (0, 255, 0), thickness=10)
+                    cv2.putText(blank_image, "position:", (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 255), 2)
+                    lijn = Lines()
+                    lijn.x1 = x1
+                    lijn.x2 = x2
+                    lijn.y1 = y1
+                    lijn.y2 = y2
+                    print(lijn)
+                    self.pub.publish(lijn)
+
         except TypeError:
             print("oops")
 
@@ -91,6 +95,8 @@ class VisionDisplay:
         canny_image = cv2.Canny(gray_image, 100, 120)
         cropped_image = self.region_of_interest(canny_image,
                                                  np.array([region_of_interest_vertices], np.int32), )
+        
+        
         lines = cv2.HoughLinesP(cropped_image,
                                 rho=2,
                                 theta=np.pi / 180,
@@ -98,8 +104,7 @@ class VisionDisplay:
                                 lines=np.array([]),
                                 minLineLength=40,
                                 maxLineGap=100)
-
-
+        #print(lines)
         image_with_lines = self.draw_the_lines(image, lines)
         return image_with_lines
 
