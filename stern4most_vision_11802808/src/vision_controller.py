@@ -71,10 +71,21 @@ class VisionDisplay:
                     lijn = Lines()
                     lijn.x1 = x1
                     lijn.x2 = x2
+                    lijn.y1 = y1
+                    lijn.y2 = y2
                     self.pub.publish(lijn)
 
         except TypeError:
-            print("oops")
+            lijn = Lines()
+            lijn.x1 = 97
+            lijn.x2 = 26
+            lijn.y1 = 97
+            lijn.y2 = 3
+            self.pub.publish(lijn)
+            print("sent a fake line")
+
+            
+
 
         img = cv2.addWeighted(img, 0.8, blank_image, 1, 0.0)
         return img

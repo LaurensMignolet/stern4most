@@ -35,10 +35,10 @@ def moveforward(speed, distance):
 
     rate = rospy.Rate(100)
 
-    print(distance > n_distance)
+    #print(distance > n_distance)
     while(distance > n_distance):
 
-        print(twist)
+        #print(twist)
         pub.publish(twist)
         now = dt.datetime.now()
         n_distance = speed * (now - start).total_seconds()
@@ -68,11 +68,11 @@ def turn(degrees_per_second,angle, isLeft):
 
     print(angle  * math.pi /180 > n_distance)
     while(angle * math.pi /180 > n_distance):
-        print(twist)
+       # print(twist)
         pub.publish(twist)
         now = dt.datetime.now()
         n_distance = radian_speed * (now - start).total_seconds()
-        print(n_distance)
+       # print(n_distance)
         rate.sleep()
 
     twist.angular.z = 0
@@ -93,20 +93,32 @@ def pilot_callback(line_message):
     #rico = float((line_message.y2 - line_message.y1) / (line_message.x2 - line_message.x1)) * 100
     
 # Slope = (y2 - y1)/(x2 - x1)
-    x = (line_message.y2 - line_message.y1)
-    y = (line_message.x2 - line_message.x1)
-    print("modulo", x%y)
-    print(x)
-    print(y)
-    print(x/y)
+    #print(line_message)
+    y = (line_message.y2 - line_message.y1)
+    x = (line_message.x2 - line_message.x1)
+   
     slope = float((line_message.y2 - line_message.y1) / (line_message.x2 - line_message.x1))
     #print("slope", slope)
+    print(slope)
+    
+    if(slope < 1.2 and slope > 0) :
+        turn(5,2,False)
+        print("going left")
+        moveforward(0.1,0.01)
+
+    elif(slope > -1.2 and slope < 0):
+        turn(5,2,True)
+        print("goint right")
+        moveforward(0.1,0.01)
+    else:
+        moveforward(0.1,0.1)
+        print("going forward")
 
 if __name__=='__main__':
     rospy.init_node('pilot')
     pub = rospy.Publisher("cmd_vel", Twist, queue_size=10)
 
-    rospy.Subscriber("/vision/lines", Lines, pilot_callback)
+    rospy.Subscriber("/vision/lines", Lines, pilot_callback, queue_size = 1)
 
 
     rospy.spin()
