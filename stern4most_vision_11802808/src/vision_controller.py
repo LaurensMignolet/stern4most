@@ -65,13 +65,12 @@ class VisionDisplay:
             for line in lines:
                 for x1, y1, x2, y2 in line:
                     cv2.line(blank_image, (x1, y1), (x2, y2), (0, 255, 0), thickness=10)
+                    cv2.putText(blank_image, "x=100, y= 50:", (100, 0), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+
                     cv2.putText(blank_image, "position:", (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 255), 2)
                     lijn = Lines()
                     lijn.x1 = x1
                     lijn.x2 = x2
-                    lijn.y1 = y1
-                    lijn.y2 = y2
-                    print(lijn)
                     self.pub.publish(lijn)
 
         except TypeError:
@@ -86,17 +85,22 @@ class VisionDisplay:
 
         height = image.shape[0]
         width = image.shape[1]
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV )
+
+        mask = cv2.inRange(hsv, np.array([143,97,128]), np.array([255,255,255]))
+        cv2.imshow("mlast", mask)
+
         region_of_interest_vertices = [
             (0, height),
             (width / 2, height / 2),
             (width, height)
         ]
-        gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-        canny_image = cv2.Canny(gray_image, 100, 120)
+        #gray_image = cv2.cvtColor(mask, cv2.COLOR_RGB2GRAY)
+        canny_image = cv2.Canny(mask, 100, 120)
         cropped_image = self.region_of_interest(canny_image,
                                                  np.array([region_of_interest_vertices], np.int32), )
         
-        
+        cv2.imshow("crop", cropped_image)
         lines = cv2.HoughLinesP(cropped_image,
                                 rho=2,
                                 theta=np.pi / 180,
@@ -130,19 +134,19 @@ class VisionDisplay:
             img = cv2.resize(image_cv,(360,480))
             cv2.imshow("Image", img)
 
-            cv2.namedWindow("Mask", cv2.WINDOW_NORMAL)
-            cv2.createTrackbar("Hue lower bound:", "Mask", 0, 179, self.callback_trackbars)
-            cv2.createTrackbar("Hue upper bound:", "Mask", 0, 179, self.callback_trackbars)
+            #cv2.namedWindow("Mask", cv2.WINDOW_NORMAL)
+            #cv2.createTrackbar("Hue lower bound:", "Mask", 0, 179, self.callback_trackbars)
+            #cv2.createTrackbar("Hue upper bound:", "Mask", 0, 179, self.callback_trackbars)
 
-            image_hsv = cv2.cvtColor(image_cv, cv2.COLOR_BGR2HSV)
-            mask = cv2.inRange(image_hsv, self.bound_low, self.bound_up)
+            #image_hsv = cv2.cvtColor(image_cv, cv2.COLOR_BGR2HSV)
+            #mask = cv2.inRange(image_hsv, self.bound_low, self.bound_up)
 
             self.line_image = self.detect_lane(img)
 
             cv2.imshow("lane detection", self.line_image)
 
 
-            cv2.imshow('Mask', mask)
+            #cv2.imshow('Mask', mask)
 
             key = cv2.waitKey(5)
             if key == 27: # Esc key top stop
@@ -150,12 +154,12 @@ class VisionDisplay:
                 self.running = False
 
     def callback_trackbars(self, value):
-        h_low = cv2.getTrackbarPos('Hue lower bound:', 'Mask')
-        h_up  = cv2.getTrackbarPos('Hue upper bound:', 'Mask')
-        s_low = 0
-        s_up  = 0
-        v_low = 0
-        v_up  = 0
+        h_low = 143#cv2.getTrackbarPos('Hue lower bound:', 'Mask')
+        h_up  = 255#cv2.getTrackbarPos('Hue upper bound:', 'Mask')
+        s_low = 97
+        s_up  = 255
+        v_low = 128
+        v_up  = 255
 
         self.bound_low = np.array([h_low, s_low, v_low], np.uint8)
         self.bound_up = np.array([h_up, s_up, v_up], np.uint8)
