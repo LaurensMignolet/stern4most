@@ -102,17 +102,17 @@ def pilot_callback(line_message):
     print(slope)
     
     if(slope < 1.2 and slope > 0) :
-        turn(5,2,False)
-        print("going left")
+        turn(12,12,False)
+        print("left!")
         moveforward(0.1,0.01)
 
     elif(slope > -1.2 and slope < 0):
-        turn(5,2,True)
-        print("goint right")
+        turn(12,12,True)
+        print("right!")
         moveforward(0.1,0.01)
     else:
-        moveforward(0.1,0.1)
-        print("going forward")
+        moveforward(0.15,0.1)
+        print("forward!")
 
 if __name__=='__main__':
     rospy.init_node('pilot')

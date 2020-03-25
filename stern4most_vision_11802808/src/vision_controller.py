@@ -67,7 +67,6 @@ class VisionDisplay:
                     cv2.line(blank_image, (x1, y1), (x2, y2), (0, 255, 0), thickness=10)
                     cv2.putText(blank_image, "x=100, y= 50:", (100, 0), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
-                    cv2.putText(blank_image, "position:", (x1, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 255), 2)
                     lijn = Lines()
                     lijn.x1 = x1
                     lijn.x2 = x2
@@ -97,13 +96,18 @@ class VisionDisplay:
         height = image.shape[0]
         width = image.shape[1]
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV )
-
-        mask = cv2.inRange(hsv, np.array([143,97,128]), np.array([255,255,255]))
+        #mask = cv2.inRange(hsv, np.array([0,0,45]), np.array([255,255,255]))
+        #mask = cv2.bitwise_not(mask)
+#        mask = cv2.inRange(hsv, np.array([143,97,128]), np.array([255,255,255]))
+        mask = cv2.inRange(hsv, np.array([0, 202, 0]), np.array([255, 219, 228])) #rood
+        mask2 = cv2.inRange(image, np.array([0, 202, 0]), np.array([255, 255, 255])) #wit
+        mask = cv2.bitwise_xor(mask, mask2)
         cv2.imshow("mlast", mask)
 
         region_of_interest_vertices = [
             (0, height),
-            (width / 2, height / 2),
+            #(width / 2, height / 2),
+            (width / 2 , height -200),
             (width, height)
         ]
         #gray_image = cv2.cvtColor(mask, cv2.COLOR_RGB2GRAY)
