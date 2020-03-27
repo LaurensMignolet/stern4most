@@ -2,109 +2,139 @@
 from __future__ import division
 
 from geometry_msgs.msg import Twist
+from std_msgs.msg import Bool
+
 import datetime as dt
 import rospy
 import math
 from stern4most_messages.msg import Lines #niet vergeten te sourcen!!!
 
 
-def moveforward(speed, distance):
-    '''
-    afstand = snelheid / tijd
-    eerst tijd nu meten 
-    elke loop tijd meten
-    als distance > speed / (start - nu) stopt de robot. is afstand bereikt
-    '''
-    twist = Twist()
-    twist.linear.x = speed
-    twist.linear.y = 0
-    twist.linear.z = 0
-    twist.angular.x = 0
-    twist.angular.y = 0
-    twist.angular.z = 0
+class Pilot:
 
-    start = dt.datetime.now()
-    now = dt.datetime.now()
-    n_distance = 0
+    def __init__(self):
+        self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
-    rate = rospy.Rate(100)
+        self.lines_sub = rospy.Subscriber("/vision/lines", Lines, self.pilot_callback, queue_size = 1)
+        self.gui_sub = rospy.Subscriber("/gui", Bool, self.autopilot_start_stop, queue_size = 1)
+        
+        self.running = True
+        self.start_autopilot = False
+
+
+
+    def moveforward(self, speed, distance):
+    
+   # afstand = snelheid / tijd
+   # eerst tijd nu meten 
+   # elke loop tijd meten
+   # als distance > speed / (start - nu) stopt de robot. is afstand bereikt
+    
+        twist = Twist()
+        twist.linear.x = speed
+        twist.linear.y = 0
+        twist.linear.z = 0
+        twist.angular.x = 0
+        twist.angular.y = 0
+        twist.angular.z = 0
+
+        start = dt.datetime.now()
+        now = dt.datetime.now()
+        n_distance = 0
+
+        rate = rospy.Rate(100)
 
     #print(distance > n_distance)
-    while(distance > n_distance):
+        while(distance > n_distance):
 
         #print(twist)
-        pub.publish(twist)
-        now = dt.datetime.now()
-        n_distance = speed * (now - start).total_seconds()
-        rate.sleep()
-    twist.linear.x = 0
-    pub.publish(twist)
+            self.pub.publish(twist)
+            now = dt.datetime.now()
+            n_distance = speed * (now - start).total_seconds()
+            rate.sleep()
+        twist.linear.x = 0
+        self.pub.publish(twist)
 
 
-def turn(degrees_per_second,angle, isLeft):
-    radian_speed = degrees_per_second * math.pi /180
+    def turn(self, degrees_per_second,angle, isLeft):
+        radian_speed = degrees_per_second * math.pi /180
     
-    twist = Twist()
-    twist.linear.x = 0
-    twist.linear.y = 0
-    twist.linear.z = 0
-    twist.angular.x = 0
-    twist.angular.y = 0
-    if isLeft == True:
-        twist.angular.z = -radian_speed
-    else:
-        twist.angular.z = radian_speed
-    rate = rospy.Rate(100)
+        twist = Twist()
+        twist.linear.x = 0
+        twist.linear.y = 0
+        twist.linear.z = 0
+        twist.angular.x = 0
+        twist.angular.y = 0
+        if isLeft == True:
+            twist.angular.z = -radian_speed
+        else:
+            twist.angular.z = radian_speed
+        rate = rospy.Rate(100)
 
-    start = dt.datetime.now()
-    now = dt.datetime.now()
-    n_distance = 0
+        start = dt.datetime.now()
+        now = dt.datetime.now()
+        n_distance = 0
 
-    print(angle  * math.pi /180 > n_distance)
-    while(angle * math.pi /180 > n_distance):
+        print(angle  * math.pi /180 > n_distance)
+        while(angle * math.pi /180 > n_distance):
        # print(twist)
-        pub.publish(twist)
-        now = dt.datetime.now()
-        n_distance = radian_speed * (now - start).total_seconds()
+            self.pub.publish(twist)
+            now = dt.datetime.now()
+            n_distance = radian_speed * (now - start).total_seconds()
        # print(n_distance)
-        rate.sleep()
+            rate.sleep()
 
-    twist.angular.z = 0
-    pub.publish(twist)
+        twist.angular.z = 0
+        self.pub.publish(twist)
     
-    twist.linear.x = 0
-    pub.publish(twist)
+        twist.linear.x = 0
+        self.pub.publish(twist)
 
 
-def pilot_callback(line_message):
+    def pilot_callback(self, line_message):
+
+        print("must drive: ", str(self.start_autopilot))
+
+        if(self.start_autopilot== True):
     
-    y = (line_message.y2 - line_message.y1)
-    x = (line_message.x2 - line_message.x1)
+            y = (line_message.y2 - line_message.y1)
+            x = (line_message.x2 - line_message.x1)
    
-    slope = float((line_message.y2 - line_message.y1) / (line_message.x2 - line_message.x1))
+            slope = float((line_message.y2 - line_message.y1) / (line_message.x2 - line_message.x1))
     #print("slope", slope)
-    print(slope)
+            print(slope)
     
-    if(slope < 1.2 and slope > 0) :
-        turn(12,12,False)
-        print("left!")
-        moveforward(0.1,0.01)
+            if(slope < 1.2 and slope > 0) :
+                self.turn(12,12,False)
+                print("left!")
+                self.moveforward(0.1,0.01)
+            elif(slope > -1.2 and slope < 0):
+                self.turn(12,12,True)
+                print("right!")
+                self.moveforward(0.1,0.01)
+            else:
+                self.moveforward(0.15,0.1)
+                print("forward!")    
+        else:
+            self.moveforward(0,0)
 
-    elif(slope > -1.2 and slope < 0):
-        turn(12,12,True)
-        print("right!")
-        moveforward(0.1,0.01)
-    else:
-        moveforward(0.15,0.1)
-        print("forward!")
+    def autopilot_start_stop(self, on):
+        print(on)
+        self.start_autopilot = on.data
+        print("i just set start to :" , str(self.start_autopilot))
+
+    def is_running(self):
+        return self.running
 
 if __name__=='__main__':
     rospy.init_node('pilot')
-    pub = rospy.Publisher("/player_one/cmd_vel", Twist, queue_size=10)
-
-    rospy.Subscriber("/vision/lines", Lines, pilot_callback, queue_size = 1)
+    
 
 
-    rospy.spin()
+    pilot = Pilot()
+
+    while pilot.is_running():
+        #time.sleep(5)
+        rospy.spin()
     #moveforward(.2, 4.0)
     #turn(20, 90, True)
