@@ -7,13 +7,7 @@ import rospy
 import math
 from stern4most_messages.msg import Lines #niet vergeten te sourcen!!!
 
-'''
-todo
-subscriben op lines  ok
-lines analyseren
-richting aanpassen. 
 
-'''
 def moveforward(speed, distance):
     '''
     afstand = snelheid / tijd
@@ -83,17 +77,7 @@ def turn(degrees_per_second,angle, isLeft):
 
 
 def pilot_callback(line_message):
-    #print(line_message, "todo")
-    '''
-    rico zoeken. robot nabij recht (+- 5 graden?) met lijn laten gaan. 
-
-    (X1 * Y2)^2 
-    '''
-
-    #rico = float((line_message.y2 - line_message.y1) / (line_message.x2 - line_message.x1)) * 100
     
-# Slope = (y2 - y1)/(x2 - x1)
-    #print(line_message)
     y = (line_message.y2 - line_message.y1)
     x = (line_message.x2 - line_message.x1)
    
@@ -116,7 +100,7 @@ def pilot_callback(line_message):
 
 if __name__=='__main__':
     rospy.init_node('pilot')
-    pub = rospy.Publisher("cmd_vel", Twist, queue_size=10)
+    pub = rospy.Publisher("/player_one/cmd_vel", Twist, queue_size=10)
 
     rospy.Subscriber("/vision/lines", Lines, pilot_callback, queue_size = 1)
 

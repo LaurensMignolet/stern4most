@@ -23,7 +23,7 @@ class VisionDisplay:
 
     def __init__(self):
         self.running = True
-        self.subVideo   = rospy.Subscriber('/camera/rgb/image_raw', Image, self.callback_image_raw)
+        self.subVideo   = rospy.Subscriber('/player_one/camera/rgb/image_raw', Image, self.callback_image_raw)
 
         self.bridge = CvBridge()
 
