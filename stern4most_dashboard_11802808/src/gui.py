@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QApplication
 import rospy
 from std_msgs.msg import Bool
 
+from geometry_msgs.msg import Twist
+
 
 class GUI(QWidget):
 
@@ -24,6 +26,7 @@ class GUI(QWidget):
 
         #self.subscriber = rospy.Subscriber(topic_name, String, self.string_message_received)
         self.publisher = rospy.Publisher(topic_name, Bool, queue_size=1)
+        self.control_publisher = rospy.Publisher("gui/controls", Twist, queue_size=1)
 
         self.label = None
         self.init_ui()
@@ -31,6 +34,11 @@ class GUI(QWidget):
     def init_ui(self):
         start = QPushButton('start autopilot', self)
         stop = QPushButton('stop autopilot', self)
+
+        forward = QPushButton('go forward', self)
+        backward = QPushButton('go backward', self)
+        right = QPushButton('go right', self)
+        left = QPushButton('go left', self)
 
         start.clicked.connect(self.start_clicked)
         start.resize(start.sizeHint())
@@ -40,15 +48,53 @@ class GUI(QWidget):
         stop.resize(start.sizeHint())
         stop.move(10, 100)
 
-        self.setGeometry(300, 300, 250, 150)
+        forward.clicked.connect(self.forward)
+        forward.resize(start.sizeHint())
+        forward.move(10, 150)
+
+        backward.clicked.connect(self.back)
+        backward.resize(start.sizeHint())
+        backward.move(10, 200)
+
+        right.clicked.connect(self.right)
+        right.resize(start.sizeHint())
+        right.move(10, 250)
+
+        left.clicked.connect(self.left)
+        left.resize(start.sizeHint())
+        left.move(10, 300)
+
+
+
+        self.setGeometry(300, 300, 250, 500)
         self.setWindowTitle('stern4most')
         self.show()
 
+    def forward(self): 
+        self.control_button( 0.2,0,0,0,0,0)
+    def back(self): 
+        self.control_button( -0.2,0,0,0,0,0)
+    def left(self): 
+        self.control_button( 0,0,0,0,0,0.2)
+    def right(self): 
+        self.control_button( 0,0,0,0,0,-0.2)
     def send_data(self, on):
         rospy.loginfo("Sending: " + str(on))
         self.publisher.publish(on)
         rospy.loginfo("Sent\n")
     
+    def control_button(self, lx, ly, lz, ax, ay, az):
+        twist = Twist()
+        twist.linear.x = lx
+        twist.linear.y = ly
+        twist.linear.z = lz
+        twist.angular.x = ax
+        twist.angular.y = ay
+        twist.angular.z = az
+
+        rospy.loginfo("Sending: " + str(twist))
+        self.control_publisher.publish(twist)
+
     def start_clicked(self):
         self.send_data(True)
 

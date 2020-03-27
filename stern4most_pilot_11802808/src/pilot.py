@@ -17,11 +17,15 @@ class Pilot:
 
         self.lines_sub = rospy.Subscriber("/vision/lines", Lines, self.pilot_callback, queue_size = 1)
         self.gui_sub = rospy.Subscriber("/gui", Bool, self.autopilot_start_stop, queue_size = 1)
-        
+        self.gui_control_sub = rospy.Subscriber("gui/controls", Twist, self.control )
+
         self.running = True
         self.start_autopilot = False
 
 
+    def control(self, twist):
+        print(twist)
+        self.pub.publish(twist)
 
     def moveforward(self, speed, distance):
     
@@ -56,7 +60,7 @@ class Pilot:
         self.pub.publish(twist)
 
 
-    def turn(self, degrees_per_second,angle, isLeft):
+    def turn(self, degrees_per_second,angle, isright):
         radian_speed = degrees_per_second * math.pi /180
     
         twist = Twist()
@@ -65,7 +69,7 @@ class Pilot:
         twist.linear.z = 0
         twist.angular.x = 0
         twist.angular.y = 0
-        if isLeft == True:
+        if isright == True:
             twist.angular.z = -radian_speed
         else:
             twist.angular.z = radian_speed
@@ -96,7 +100,7 @@ class Pilot:
         print("must drive: ", str(self.start_autopilot))
 
         if(self.start_autopilot== True):
-    
+            
             y = (line_message.y2 - line_message.y1)
             x = (line_message.x2 - line_message.x1)
    
@@ -115,8 +119,7 @@ class Pilot:
             else:
                 self.moveforward(0.15,0.1)
                 print("forward!")    
-        else:
-            self.moveforward(0,0)
+        
 
     def autopilot_start_stop(self, on):
         print(on)
