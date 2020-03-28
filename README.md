@@ -4,6 +4,8 @@ hoe aan de slag met stern4most
 
 ## stap 1 
 Clone de repository naar je catkin workspace src folder.
+Zorg dan catkin_ws/src leeg is. anders gaat het niet werken. 
+
 ```
 catkin_ws/src$ git clone https://github.com/LaurensMignolet/stern4most.git . 
 ```
