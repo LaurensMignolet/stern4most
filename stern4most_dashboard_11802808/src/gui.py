@@ -39,6 +39,7 @@ class GUI(QWidget):
         backward = QPushButton('go backward', self)
         right = QPushButton('go right', self)
         left = QPushButton('go left', self)
+        emergency_stop = QPushButton('emergency stop', self)
 
         start.clicked.connect(self.start_clicked)
         start.resize(start.sizeHint())
@@ -64,12 +65,17 @@ class GUI(QWidget):
         left.resize(start.sizeHint())
         left.move(10, 300)
 
-
+        emergency_stop.clicked.connect(self.emergency_stop)
+        emergency_stop.resize(start.sizeHint())
+        emergency_stop.move(10, 350)
 
         self.setGeometry(300, 300, 250, 500)
         self.setWindowTitle('stern4most')
         self.show()
 
+    def emergency_stop(self):
+        self.control_button(0,0,0,0,0,0)
+        self.send_data(False)
     def forward(self): 
         self.control_button( 0.2,0,0,0,0,0)
     def back(self): 
@@ -78,6 +84,7 @@ class GUI(QWidget):
         self.control_button( 0,0,0,0,0,0.2)
     def right(self): 
         self.control_button( 0,0,0,0,0,-0.2)
+        
     def send_data(self, on):
         rospy.loginfo("Sending: " + str(on))
         self.publisher.publish(on)
@@ -101,11 +108,11 @@ class GUI(QWidget):
     def stop_clicked(self):
         self.send_data(False)
 
-    def string_message_received(self, data):
-        rospy.loginfo("Receiving data: " + data.data)
-        self.label.setText(data.data)
-        self.label.resize(self.label.sizeHint())
-        rospy.loginfo("GUI updated\n")
+    #def string_message_received(self, data):
+    #    rospy.loginfo("Receiving data: " + data.data)
+    #    self.label.setText(data.data)
+    #    self.label.resize(self.label.sizeHint())
+    #    rospy.loginfo("GUI updated\n")
 
 
 
