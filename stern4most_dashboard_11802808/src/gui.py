@@ -11,6 +11,7 @@ import cv2
 
 import rospy
 from std_msgs.msg import Bool
+from std_msgs.msg import String
 
 from geometry_msgs.msg import Twist
 
@@ -29,11 +30,12 @@ class GUI(QWidget):
         self.publisher_name = "gui_publisher"
         rospy.init_node("gui_publish", anonymous=False)
 
-        self.subscriber = rospy.Subscriber("/camera/rgb/image_raw", Image, self.string_message_received)
+        self.race_info_subscriber = rospy.Subscriber("/communication/race", String, self.string_message_received)
+        self.subscriber = rospy.Subscriber("/camera/rgb/image_raw", Image, self.image_message_received)
         self.publisher = rospy.Publisher(topic_name, Bool, queue_size=1)
+        self.publisher_race = rospy.Publisher("gui/race", Bool, queue_size=1)
         self.control_publisher = rospy.Publisher("gui/controls", Twist, queue_size=1)
 
-        self.label = None
         self.init_ui()
 
     def init_ui(self):
@@ -71,10 +73,15 @@ class GUI(QWidget):
         race.clicked.connect(self.race)
         race.resize(start.sizeHint())
         
+        self.race_info = QtWidgets.QLabel("[][][] race info [][][]", self)
+        self.race_info.move(200,200)
+
         self.image_frame = QtWidgets.QLabel()
         self.image_frame.move(200,200)
 
+
         self.layout = QtWidgets.QVBoxLayout()
+        self.layout.addWidget(self.race_info)
         self.layout.addWidget(start)
         self.layout.addWidget(stop)
         self.layout.addWidget(brake)
@@ -94,7 +101,9 @@ class GUI(QWidget):
         self.show()
 
     def race(self):
-        print("race")
+        rospy.loginfo("sending message to race ")
+        bol = True
+        self.publisher_race.publish(bol)
     def brake(self):
         self.control_button(0,0,0,0,0,0)
         self.send_data(False)
@@ -131,6 +140,9 @@ class GUI(QWidget):
         self.send_data(False)
 
     def string_message_received(self, data):
+        self.race_info.setText(data.data)
+
+    def image_message_received(self, data):
         image = self.convert_ros_to_opencv(data)
         image = cv2.pyrDown(image)
 
