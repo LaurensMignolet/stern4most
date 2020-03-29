@@ -3,7 +3,11 @@
 import sys
 import os
 
+from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QApplication
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
+import cv2
 
 import rospy
 from std_msgs.msg import Bool
@@ -19,12 +23,13 @@ class GUI(QWidget):
         self.counter = 0
         topic_name = "gui"
 
+        self.bridge = CvBridge()
         #subscriber_name = "test_subscriber"
 
         self.publisher_name = "gui_publisher"
         rospy.init_node("gui_publish", anonymous=False)
 
-        #self.subscriber = rospy.Subscriber(topic_name, String, self.string_message_received)
+        self.subscriber = rospy.Subscriber("/camera/rgb/image_raw", Image, self.string_message_received)
         self.publisher = rospy.Publisher(topic_name, Bool, queue_size=1)
         self.control_publisher = rospy.Publisher("gui/controls", Twist, queue_size=1)
 
@@ -39,41 +44,58 @@ class GUI(QWidget):
         backward = QPushButton('go backward', self)
         right = QPushButton('go right', self)
         left = QPushButton('go left', self)
-        emergency_stop = QPushButton('emergency stop', self)
+        brake = QPushButton('brake', self)
+        race = QPushButton('race (experimental)', self)
 
         start.clicked.connect(self.start_clicked)
         start.resize(start.sizeHint())
-        start.move(10, 50)
 
         stop.clicked.connect(self.stop_clicked)
         stop.resize(start.sizeHint())
-        stop.move(10, 100)
 
         forward.clicked.connect(self.forward)
         forward.resize(start.sizeHint())
-        forward.move(10, 150)
 
         backward.clicked.connect(self.back)
         backward.resize(start.sizeHint())
-        backward.move(10, 200)
 
         right.clicked.connect(self.right)
         right.resize(start.sizeHint())
-        right.move(10, 250)
 
         left.clicked.connect(self.left)
         left.resize(start.sizeHint())
-        left.move(10, 300)
 
-        emergency_stop.clicked.connect(self.emergency_stop)
-        emergency_stop.resize(start.sizeHint())
-        emergency_stop.move(10, 350)
+        brake.clicked.connect(self.brake)
+        brake.resize(start.sizeHint())
+        
+        race.clicked.connect(self.race)
+        race.resize(start.sizeHint())
+        
+        self.image_frame = QtWidgets.QLabel()
+        self.image_frame.move(200,200)
 
-        self.setGeometry(300, 300, 250, 500)
-        self.setWindowTitle('stern4most')
+        self.layout = QtWidgets.QVBoxLayout()
+        self.layout.addWidget(start)
+        self.layout.addWidget(stop)
+        self.layout.addWidget(brake)
+        self.layout.addWidget(forward)
+        self.layout.addWidget(left)
+        self.layout.addWidget(right)
+        self.layout.addWidget(backward)
+
+        self.layout.addWidget(self.image_frame)
+        self.layout.addWidget(race)
+
+        self.setLayout(self.layout)
+
+
+        self.setGeometry(500, 500, 500, 500)
+        self.setWindowTitle('stern4most gui')
         self.show()
 
-    def emergency_stop(self):
+    def race(self):
+        print("race")
+    def brake(self):
         self.control_button(0,0,0,0,0,0)
         self.send_data(False)
     def forward(self): 
@@ -84,7 +106,7 @@ class GUI(QWidget):
         self.control_button( 0,0,0,0,0,0.2)
     def right(self): 
         self.control_button( 0,0,0,0,0,-0.2)
-        
+
     def send_data(self, on):
         rospy.loginfo("Sending: " + str(on))
         self.publisher.publish(on)
@@ -108,13 +130,19 @@ class GUI(QWidget):
     def stop_clicked(self):
         self.send_data(False)
 
-    #def string_message_received(self, data):
-    #    rospy.loginfo("Receiving data: " + data.data)
-    #    self.label.setText(data.data)
-    #    self.label.resize(self.label.sizeHint())
-    #    rospy.loginfo("GUI updated\n")
+    def string_message_received(self, data):
+        image = self.convert_ros_to_opencv(data)
+        image = cv2.pyrDown(image)
 
-
+        #self.image = QtGui.QImage(self.image.data, self.image.shape[1], self.image.shape[0], QtGui.QImage.Format_RGB888).rgbSwapped()
+        self.image_frame.setPixmap(QtGui.QPixmap.fromImage(QtGui.QImage(image.data, image.shape[1], image.shape[0], QtGui.QImage.Format_RGB888).rgbSwapped()))
+    
+    def convert_ros_to_opencv(self, ros_image):
+        try:
+            cv_image = self.bridge.imgmsg_to_cv2(ros_image, "bgr8")
+            return cv_image
+        except CvBridgeError as error:
+            raise Exception("Failed to convert to OpenCV image")
 
 if __name__ == '__main__':
     application = QApplication(sys.argv)
