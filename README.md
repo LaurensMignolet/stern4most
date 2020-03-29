@@ -1,7 +1,8 @@
 # stern4most
 
  ## DEMO
- In de demo's worden al de functionaliteiten die op dit moment geimplementeerd zijn overlopen. 
+ In de demo's worden al de functionaliteiten die op dit moment geimplementeerd zijn overlopen. <br/>
+ Tip: speel de demo's in 2x snelheid
  
  ### demo 1
  https://www.youtube.com/watch?v=IQxIeZGA9OM
