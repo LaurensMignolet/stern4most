@@ -1,19 +1,19 @@
 # stern4most
 
 ## wat werkt er WEL?
-GUI met knoppen om auto pilot te starten te stoppen en reverse autopilot te starten. 
-GUI knoppen om te sturen
-GUI knop om race te starten
-PILOT auto pilot op turtlebot3_pxl_race.launch 
-PILOT auto pilot stoppen
-VISION lijnen detecteren
-REFEREE aftellen en race starten
+GUI met knoppen om auto pilot te starten te stoppen en reverse autopilot te starten. <br/>
+GUI knoppen om te sturen<br/>
+GUI knop om race te starten<br/>
+PILOT auto pilot op turtlebot3_pxl_race.launch <br/>
+PILOT auto pilot stoppen<br/>
+VISION lijnen detecteren<br/>
+REFEREE aftellen en race starten<br/>
 
 
 ## wat werkt er NIET?
-PILOT auto pilot reverse werkt niet
-PILOT auto pilot werkt niet op turtlebot3_pxl_race_battle.launch
-COMMUNICATION sector doorgeven
+PILOT auto pilot reverse werkt niet<br/>
+PILOT auto pilot werkt niet op turtlebot3_pxl_race_battle.launch<br/>
+COMMUNICATION sector doorgeven<br/>
 
 
 ## hoe aan de slag met stern4most
