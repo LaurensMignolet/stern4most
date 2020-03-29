@@ -1,5 +1,16 @@
 # stern4most
 
+ ## DEMO
+ In de demo's worden al de functionaliteiten die op dit moment geimplementeerd zijn overlopen. 
+ 
+ ### demo 1
+ https://www.youtube.com/watch?v=IQxIeZGA9OM
+ 
+ ### demo2
+ ik heb ook een tweede demo gemaakt omdat ik in de eerste demo vergeten was om de communication node te starten. hierdoor
+ werkte het aftellen niet.<br/>
+ https://www.youtube.com/watch?v=pfyXoAj9lRs
+
 ## wat werkt er WEL?
 GUI met knoppen om auto pilot te starten te stoppen en reverse autopilot te starten. <br/>
 GUI knoppen om te sturen<br/>
@@ -14,6 +25,7 @@ REFEREE aftellen en race starten<br/>
 PILOT auto pilot reverse werkt niet<br/>
 PILOT auto pilot werkt niet op turtlebot3_pxl_race_battle.launch<br/>
 COMMUNICATION sector doorgeven<br/>
+
 
 
 ## hoe aan de slag met stern4most
@@ -57,3 +69,8 @@ en zal de robot autonoom beginnen te rijden.
 ```
 user@basesation:~$ rosrun stern4most_dashboard_11802808 gui.py
 ```
+
+## race
+
+om te racen moet de referee en de communication node opgestart worden. 
+
