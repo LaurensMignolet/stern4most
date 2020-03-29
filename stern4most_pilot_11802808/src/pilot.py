@@ -18,9 +18,14 @@ class Pilot:
         self.lines_sub = rospy.Subscriber("/vision/lines", Lines, self.pilot_callback, queue_size = 1)
         self.gui_sub = rospy.Subscriber("/gui", Bool, self.autopilot_start_stop, queue_size = 1)
         self.gui_control_sub = rospy.Subscriber("gui/controls", Twist, self.control )
+        self.gui_reverse_sub = rospy.Subscriber("/gui/reverse", Bool, self.is_reverse )
 
         self.running = True
         self.start_autopilot = False
+        self.reverse = False
+
+    def is_reverse(self, bool):
+        self.reverse = bool.data
 
 
     def control(self, twist):
@@ -109,16 +114,37 @@ class Pilot:
             print(slope)
     
             if(slope < 1.2 and slope > 0) :
-                self.turn(12,12,False)
-                print("left!")
-                self.moveforward(0.1,0.01)
+                
+                if(self.reverse == False):
+                    self.turn(12,12,False)
+                    rint("left!")
+                    self.moveforward(0.1,0.1)
+                    print("forward!")
+                elif(self.reverse == True):
+                    self.turn(12,12,True)
+                    print("right!")
+                    self.moveforward(-0.1,0.1)
+                    print("backward!")  
             elif(slope > -1.2 and slope < 0):
-                self.turn(12,12,True)
-                print("right!")
-                self.moveforward(0.1,0.01)
+                
+                
+                if(self.reverse == False):
+                    self.turn(12,12,True)
+                    print("right!")
+                    self.moveforward(0.1,0.1)
+                    print("forward!")
+                elif(self.reverse == True):
+                    self.turn(12,12,False)
+                    print("left!")
+                    self.moveforward(-0.1,0.1)
+                    print("backward!")  
             else:
-                self.moveforward(0.15,0.1)
-                print("forward!")    
+                if(self.reverse == False):
+                    self.moveforward(0.15,0.1)
+                    print("forward!")
+                elif(self.reverse == True):
+                    self.moveforward(-0.15,0.1)
+                    print("backward!")  
         
 
     def autopilot_start_stop(self, on):

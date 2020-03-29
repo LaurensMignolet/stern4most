@@ -35,11 +35,14 @@ class GUI(QWidget):
         self.publisher = rospy.Publisher(topic_name, Bool, queue_size=1)
         self.publisher_race = rospy.Publisher("gui/race", Bool, queue_size=1)
         self.control_publisher = rospy.Publisher("gui/controls", Twist, queue_size=1)
+        self.publisher_reverse = rospy.Publisher("gui/reverse", Bool, queue_size=1)
 
         self.init_ui()
 
     def init_ui(self):
         start = QPushButton('start autopilot', self)
+        reverse_start = QPushButton('reverse autopilot very expiremental', self)
+
         stop = QPushButton('stop autopilot', self)
 
         forward = QPushButton('go forward', self)
@@ -51,6 +54,9 @@ class GUI(QWidget):
 
         start.clicked.connect(self.start_clicked)
         start.resize(start.sizeHint())
+
+        reverse_start.clicked.connect(self.reverse_start_clicked)
+        reverse_start.resize(start.sizeHint())
 
         stop.clicked.connect(self.stop_clicked)
         stop.resize(start.sizeHint())
@@ -83,6 +89,7 @@ class GUI(QWidget):
         self.layout = QtWidgets.QVBoxLayout()
         self.layout.addWidget(self.race_info)
         self.layout.addWidget(start)
+        self.layout.addWidget(reverse_start)
         self.layout.addWidget(stop)
         self.layout.addWidget(brake)
         self.layout.addWidget(forward)
@@ -106,7 +113,7 @@ class GUI(QWidget):
         self.publisher_race.publish(bol)
     def brake(self):
         self.control_button(0,0,0,0,0,0)
-        self.send_data(False)
+        self.send_data(False, False)
     def forward(self): 
         self.control_button( 0.2,0,0,0,0,0)
     def back(self): 
@@ -116,9 +123,10 @@ class GUI(QWidget):
     def right(self): 
         self.control_button( 0,0,0,0,0,-0.2)
 
-    def send_data(self, on):
+    def send_data(self, on, reverse):
         rospy.loginfo("Sending: " + str(on))
         self.publisher.publish(on)
+        self.publisher_reverse.publish(reverse)
         rospy.loginfo("Sent\n")
     
     def control_button(self, lx, ly, lz, ax, ay, az):
@@ -134,10 +142,12 @@ class GUI(QWidget):
         self.control_publisher.publish(twist)
 
     def start_clicked(self):
-        self.send_data(True)
+        self.send_data(True, False)
 
+    def reverse_start_clicked(self):        
+        self.send_data(True, True)
     def stop_clicked(self):
-        self.send_data(False)
+        self.send_data(False, False)
 
     def string_message_received(self, data):
         self.race_info.setText(data.data)
